@@ -1,79 +1,135 @@
+import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { useNavigation } from "@react-navigation/native";
+import React from "react";
 import {
-    Image,
-    SafeAreaView,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    useWindowDimensions,
-    View,
+  ScrollView,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  useColorScheme,
+  View,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+
+// Type for icon data
+type IconData = {
+  icon: string,
+  iconSet: React.ComponentType<{ name: string, size: number, color: string }>,
+  color: string,
+};
+
+const SERVICE_ICONS: Record<string, IconData> = {
+  "Women's Salon & Spa": {
+    icon: "face-woman-shimmer",
+    iconSet: MaterialCommunityIcons,
+    color: "#F06292",
+  },
+  "Men's Salon & Massage": {
+    icon: "face-man-shimmer",
+    iconSet: MaterialCommunityIcons,
+    color: "#64B5F6",
+  },
+  "AC & Appliance Repair": {
+    icon: "air-conditioner",
+    iconSet: MaterialCommunityIcons,
+    color: "#4ECDC4",
+  },
+  "Cleaning & Pest Control": {
+    icon: "spray-bottle",
+    iconSet: MaterialCommunityIcons,
+    color: "#FFD166",
+  },
+  "Electrician, Plumber & Carpenter": {
+    icon: "hammer-screwdriver",
+    iconSet: MaterialCommunityIcons,
+    color: "#06D6A0",
+  },
+  "Native Water Purifier": {
+    icon: "water-pump",
+    iconSet: MaterialCommunityIcons,
+    color: "#118AB2",
+  },
+  "Native Smart Locks": {
+    icon: "lock-smart",
+    iconSet: MaterialCommunityIcons,
+    color: "#073B4C",
+  },
+  "Full home painting": {
+    icon: "format-paint",
+    iconSet: MaterialCommunityIcons,
+    color: "#EF476F",
+  },
+  "Pest Control": {
+    icon: "bug",
+    iconSet: MaterialCommunityIcons,
+    color: "#FF8C42",
+  },
+};
+
+// ServiceCard component
+const ServiceCard = ({ title }: { title: string }) => {
+  const serviceIcon = SERVICE_ICONS[title];
+  const IconComponent = serviceIcon?.iconSet || MaterialCommunityIcons;
+  const iconName = serviceIcon?.icon || "help-circle";
+  const iconColor = serviceIcon?.color || "#333";
+
+  return (
+    <TouchableOpacity style={styles.serviceCard}>
+      <View
+        style={[styles.serviceCardImg, { backgroundColor: `${iconColor}20` }]}
+      >
+        <IconComponent name={iconName} size={32} color={iconColor} />
+      </View>
+      <Text style={styles.serviceText}>{title}</Text>
+    </TouchableOpacity>
+  );
+};
 
 export default function Beauty() {
-  const { width } = useWindowDimensions();
-
-  // Sample data for services
-  const services = [
-    {
-      id: "1",
-      title: "Salon Services",
-      description:
-        "Haircuts, styling, coloring, and more from top salons near you.",
-      image:
-        "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=800&q=80",
-    },
-    {
-      id: "2",
-      title: "Spa Treatments",
-      description:
-        "Relax with massages, facials, and rejuvenating spa therapies.",
-      image:
-        "https://images.unsplash.com/photo-1504384308090-c894fdcc538d?auto=format&fit=crop&w=800&q=80",
-    },
-    {
-      id: "3",
-      title: "At-Home Services",
-      description:
-        "Get professional beauty care delivered right at your doorstep.",
-      image:
-        "https://images.unsplash.com/photo-1542831371-29b0f74f9713?auto=format&fit=crop&w=800&q=80",
-    },
-  ];
+  const navigation = useNavigation();
+  const colorScheme = useColorScheme(); // returns 'light' or 'dark'
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <ScrollView contentContainerStyle={styles.container}>
-        <Text style={[styles.title, { fontSize: width * 0.07 }]}>
-          Beauty Services
-        </Text>
-        <Text style={[styles.subtitle, { fontSize: width * 0.045 }]}>
-          Explore salons, spas, and at-home services.
-        </Text>
+      <StatusBar
+        barStyle={colorScheme === "dark" ? "light-content" : "dark-content"}
+        backgroundColor={colorScheme === "dark" ? "#000" : "#fff"}
+        //  backgroundColor="transparent"
+        translucent={false}
+      />
 
-        {/* Services list */}
-        <View style={{ width: "100%" }}>
-          {services.map((service) => (
-            <View key={service.id} style={[styles.card, { width: width - 40 }]}>
-              <Image
-                source={{ uri: service.image }}
-                style={[styles.image, { height: (width - 40) * 0.5 }]}
-                resizeMode="cover"
-              />
-              <View style={styles.cardContent}>
-                <Text style={[styles.cardTitle, { fontSize: width * 0.05 }]}>
-                  {service.title}
-                </Text>
-                <Text
-                  style={[styles.cardDescription, { fontSize: width * 0.035 }]}
-                >
-                  {service.description}
-                </Text>
-                <TouchableOpacity style={styles.button}>
-                  <Text style={styles.buttonText}>Book Now</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-          ))}
+      <ScrollView
+        style={styles.container}
+        contentContainerStyle={styles.scrollContent}
+      >
+        {/* Home Header */}
+        <View style={styles.headerContainer}>
+          <MaterialCommunityIcons
+            name="mirror" // “mirror” icon from MCI
+            size={20}
+            color="#FF6B6B" // pink/red accent
+            style={styles.icon}
+          />
+          <Text style={styles.text}>
+            <Text style={styles.headerTitle}>Personal</Text>
+            <Text style={styles.headerSubtitle}> grooming</Text>
+          </Text>
+        </View>
+
+        {/* Main Service Categories */}
+        <View style={styles.sectionContainer}>
+          <View style={styles.servicesGrid}>
+            {/* <ServiceCard title="Women's Salon & Spa" />
+            <ServiceCard title="Men's Salon & Massage" />
+            <ServiceCard title="AC & Appliance Repair" />
+            <ServiceCard title="Cleaning & Pest Control" />
+            <ServiceCard title="Electrician, Plumber & Carpenter" />
+            <ServiceCard title="Native Water Purifier" />
+            <ServiceCard title="Native Smart Locks" />
+            <ServiceCard title="Full home painting" />
+            <ServiceCard title="Pest Control" /> */}
+          </View>
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -83,57 +139,89 @@ export default function Beauty() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: "#fff",
+    // backgroundColor: "#f5f5f5",
+    backgroundColor: "#f8f8f8",
   },
   container: {
-    paddingVertical: 20,
-    paddingHorizontal: 20,
+    flex: 1,
+  },
+  scrollContent: {
+    // padding: 16,
+  },
+  headerContainer: {
+    flexDirection: "row",
     alignItems: "center",
-  },
-  title: {
-    fontWeight: "bold",
-    color: "#333",
-    marginBottom: 6,
-  },
-  subtitle: {
-    color: "#666",
-    marginBottom: 20,
-  },
-  card: {
+    paddingHorizontal: 16,
+    // paddingVertical: 12,
     backgroundColor: "#fff",
-    borderRadius: 12,
+    // borderWidth:1,
+    paddingTop: 20,
+    paddingBottom: 20,
+    height: 80,
+  },
+  icon: {
+    marginRight: 8,
+  },
+  headerSubtitle: {
+    color: "#555",
+    fontSize: 20,
+  },
+  headerTitle: {
+    fontWeight: "600",
+    color: "#000",
+    fontSize: 20,
+  },
+  ationRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    // borderWidth:1,
+  },
+
+  cartButton: {
+    padding: 8,
+  },
+  sectionContainer: {
     marginBottom: 20,
-    shadowColor: "#000",
-    shadowOpacity: 0.1,
-    shadowOffset: { width: 0, height: 4 },
-    shadowRadius: 8,
-    elevation: 4, // for Android shadow
-    overflow: "hidden",
+    backgroundColor: "#fff",
+    // borderWidth: 1,
+    paddingHorizontal: 16,
+    paddingTop: 10,
+    paddingBottom: 15,
   },
-  image: {
+  servicesGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "space-between",
+    rowGap: 10,
+    columnGap: "2%",
+  },
+
+  serviceCard: {
+    width: "31%",
+    alignItems: "center",
+    marginBottom: 16,
+  },
+
+  serviceRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: 16,
+  },
+  serviceCardImg: {
+    backgroundColor: "#f9f9f9",
     width: "100%",
-  },
-  cardContent: {
-    padding: 15,
-  },
-  cardTitle: {
-    fontWeight: "700",
-    color: "#222",
+    height: 80,
+    borderRadius: 8,
+    justifyContent: "center",
+    alignItems: "center",
     marginBottom: 8,
   },
-  cardDescription: {
-    color: "#555",
-    marginBottom: 12,
+  serviceText: {
+    fontSize: 14,
+    textAlign: "center",
+    color: "#333",
   },
-  button: {
-    backgroundColor: "#FF6F61",
-    paddingVertical: 10,
-    borderRadius: 8,
-    alignItems: "center",
-  },
-  buttonText: {
-    color: "#fff",
-    fontWeight: "600",
-    fontSize: 16,
+  emptyCard: {
+    width: "48%",
   },
 });
