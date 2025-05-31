@@ -1,7 +1,10 @@
 import { Feather, MaterialCommunityIcons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
-import React, { useCallback, useState } from "react";
+import React, { useRef, useState } from "react";
 import {
+  Animated,
+  Easing,
+  Image,
   Modal,
   ScrollView,
   StatusBar,
@@ -12,6 +15,7 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import SearchBar from "../../components/SearchBar";
 
 // Type for icon data
 type IconData = {
@@ -20,6 +24,7 @@ type IconData = {
   color: string;
 };
 
+// Icon mapping
 const SERVICE_ICONS: Record<string, IconData> = {
   "Women's Salon & Spa": {
     icon: "face-woman-shimmer",
@@ -68,7 +73,13 @@ const SERVICE_ICONS: Record<string, IconData> = {
   },
 };
 
-// ServiceCard component
+// Props for service card
+type ServiceCardProps = {
+  title: string;
+  onPress: (title: string) => void;
+};
+
+// Service card
 const ServiceCard: React.FC<ServiceCardProps> = ({ title, onPress }) => {
   const serviceIcon = SERVICE_ICONS[title];
   const IconComponent = serviceIcon?.iconSet || MaterialCommunityIcons;
@@ -76,7 +87,7 @@ const ServiceCard: React.FC<ServiceCardProps> = ({ title, onPress }) => {
   const iconColor = serviceIcon?.color || "#333";
 
   return (
-    <TouchableOpacity style={styles.serviceCard}>
+    <TouchableOpacity style={styles.serviceCard} onPress={() => onPress(title)}>
       <View
         style={[styles.serviceCardImg, { backgroundColor: `${iconColor}20` }]}
       >
@@ -87,23 +98,56 @@ const ServiceCard: React.FC<ServiceCardProps> = ({ title, onPress }) => {
   );
 };
 
+// Home screen
 export default function HomeScreen() {
   const navigation = useNavigation();
-  const colorScheme = useColorScheme(); // returns 'light' or 'dark
-  const [modalVisible, setModalVisible] = useState(false);
-  const openModal = useCallback(() => setModalVisible(true), []);
-  const closeModal = useCallback(() => setModalVisible(false), []);
+  const colorScheme = useColorScheme();
+  const [search, setSearch] = useState("");
 
-  const openSheet = useCallback(() => {
-    // sheetRef.current?.expand();
-  }, []);
+  const [selectedService, setSelectedService] = useState<string | null>(null);
+  const [isModalVisible, setModalVisible] = useState(false);
+  const slideAnim = useRef(new Animated.Value(300)).current;
+
+  const handleCardPress = (title: string) => {
+    if (title === "AC & Appliance Repair") {
+      // navigation.navigate("");
+    } else {
+      showModal(title);
+      // setTimeout(() => setModalVisible(true), 100);
+      // setSelectedService(serviceName);
+      // setModalVisible(true);
+    }
+  };
+  const showModal = (title: string) => {
+    setSelectedService(title);
+    setModalVisible(true);
+
+    // Slide up animation
+    Animated.timing(slideAnim, {
+      toValue: 0,
+      duration: 400,
+      useNativeDriver: true,
+      easing: Easing.out(Easing.ease),
+    }).start();
+  };
+
+  const closeModal = () => {
+    // setModalVisible(false);
+    // setSelectedService(null);
+    Animated.timing(slideAnim, {
+      toValue: 300, // Slide back down
+      duration: 200,
+      useNativeDriver: true,
+    }).start(() => {
+      setModalVisible(false); // Hide modal after animation
+    });
+  };
 
   return (
     <SafeAreaView style={styles.safeArea}>
       <StatusBar
         barStyle={colorScheme === "dark" ? "light-content" : "dark-content"}
         backgroundColor={colorScheme === "dark" ? "#000" : "#fff"}
-        //  backgroundColor="transparent"
         translucent={false}
       />
 
@@ -115,7 +159,6 @@ export default function HomeScreen() {
         <View style={styles.headerContainer}>
           <View style={styles.locationContent}>
             <View style={styles.locationRow}>
-              {/* <MaterialIcons name="location-on" size={20} color="#4CAF50" /> */}
               <Text style={styles.locationMainText}>Krishnapur</Text>
             </View>
             <TouchableOpacity style={styles.locationContainer}>
@@ -124,76 +167,135 @@ export default function HomeScreen() {
               </Text>
             </TouchableOpacity>
           </View>
-
+       
           <TouchableOpacity style={styles.cartButton}>
             <Feather name="shopping-cart" size={20} color="#000" />
           </TouchableOpacity>
+        </View>
+        <View style={styles.stickyHeader}>
+          <SearchBar value={search} onChangeText={setSearch} />
         </View>
 
         {/* Main Service Categories */}
         <View style={styles.sectionContainer}>
           <View style={styles.servicesGrid}>
-            <ServiceCard title="Women's Salon & Spa" onPress={openModal} />
-
-            <ServiceCard title="Men's Salon & Massage" />
-            <ServiceCard title="AC & Appliance Repair" />
-            <ServiceCard title="Cleaning & Pest Control" />
-            <ServiceCard title="Electrician, Plumber & Carpenter" />
-            <ServiceCard title="Native Water Purifier" />
-            <ServiceCard title="Native Smart Locks" />
-            <ServiceCard title="Full home painting" />
-            <ServiceCard title="Pest Control" />
+            {Object.keys(SERVICE_ICONS).map((service) => (
+              <ServiceCard
+                key={service}
+                title={service}
+                onPress={handleCardPress}
+              />
+            ))}
           </View>
         </View>
       </ScrollView>
-      <Modal
-        visible={modalVisible}
-        transparent
-        animationType="slide"
-        onRequestClose={closeModal}
-      >
-        {/* Container to stack backdrop & content */}
-        <View style={styles.modalContainer}>
-          {/* Dimmed background */}
+
+      {/* Bottom Sheet Modal */}
+      {isModalVisible && (
+        <Modal
+          visible={isModalVisible}
+          transparent
+          animationType="none"
+          onRequestClose={closeModal}
+        >
           <TouchableOpacity
             style={styles.backdrop}
-            activeOpacity={1}
             onPress={closeModal}
+            activeOpacity={1}
           />
-          {/* Bottom sheet content */}
-          <View style={styles.modalContent}>
-            <Text style={styles.sheetTitle}>Women's Salon & Spa</Text>
-            {/* … your sub‑services UI here … */}
+          <View>
+            <Animated.View
+              style={[
+                styles.modalContent,
+                { transform: [{ translateY: slideAnim }] },
+              ]}
+            >
+              <Text style={styles.sheetTitle}>{selectedService}</Text>
+              {selectedService === "Women's Salon & Spa" && (
+                <>
+                  <Text style={{ color: "#555", marginBottom: 10 }}>
+                    Welcome to the Women's Salon & Spa! Choose from haircuts,
+                    facials, and massages.
+                  </Text>
+                  <Text style={{ color: "#555", marginBottom: 10 }}>
+                    We provide premium products and services tailored for women.
+                  </Text>
+                  <Text style={{ color: "#555", marginBottom: 10 }}>
+                    Welcome to the Women's Salon & Spa! Choose from haircuts,
+                    facials, and massages.
+                  </Text>
+                  <Text style={{ color: "#555", marginBottom: 10 }}>
+                    We provide premium products and services tailored for women.
+                  </Text>
+                  <Text style={{ color: "#555", marginBottom: 10 }}>
+                    Welcome to the Women's Salon & Spa! Choose from haircuts,
+                    facials, and massages.
+                  </Text>
+                  <Text style={{ color: "#555", marginBottom: 10 }}>
+                    We provide premium products and services tailored for women.
+                  </Text>
+                  <Text style={{ color: "#555", marginBottom: 10 }}>
+                    Welcome to the Women's Salon & Spa! Choose from haircuts,
+                    facials, and massages.
+                  </Text>
+                  <Text style={{ color: "#555", marginBottom: 10 }}>
+                    We provide premium products and services tailored for women.
+                  </Text>
+                </>
+              )}
+
+              {selectedService === "Men's Salon & Massage" && (
+                <>
+                  <Text style={{ color: "#555", marginBottom: 10 }}>
+                    Men's grooming and massage services designed for relaxation.
+                  </Text>
+                  <Text style={{ color: "#555", marginBottom: 10 }}>
+                    Book a haircut, beard trim, or deep tissue massage today.
+                  </Text>
+                </>
+              )}
+              {![
+                "Women's Salon & Spa",
+                "Men's Salon & Massage",
+                "AC & Appliance Repair",
+              ].includes(selectedService || "") && (
+                <Text style={{ color: "#555" }}>
+                  Details and options for "{selectedService}" will go here.
+                </Text>
+              )}
+              <TouchableOpacity onPress={closeModal} style={styles.closeModel}>
+                <Image
+                  style={{ height: 15 }}
+                  resizeMode="contain"
+                  source={require("../../assets/icons/close.png")}
+                />
+              </TouchableOpacity>
+            </Animated.View>
           </View>
-        </View>
-      </Modal>
+        </Modal>
+      )}
     </SafeAreaView>
   );
 }
 
+// Styles
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    // backgroundColor: "#f5f5f5",
     backgroundColor: "#f8f8f8",
   },
   container: {
     flex: 1,
   },
-  scrollContent: {
-    // padding: 16,
-  },
+  scrollContent: {},
   headerContainer: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    // marginBottom: 20,
     paddingTop: 20,
     paddingBottom: 10,
     paddingHorizontal: 16,
     backgroundColor: "#fff",
-    // borderWidth:1,
-    overflow: "hidden",
     height: 80,
   },
   locationContent: {
@@ -202,16 +304,12 @@ const styles = StyleSheet.create({
   locationRow: {
     flexDirection: "row",
     alignItems: "center",
-    // borderWidth:1,
   },
-  locationContainer: {
-    // marginLeft: 28,
-  },
+  locationContainer: {},
   locationMainText: {
     fontSize: 16,
     fontWeight: "bold",
     color: "#333",
-    // marginLeft: 8,
   },
   locationSubText: {
     fontSize: 12,
@@ -224,7 +322,6 @@ const styles = StyleSheet.create({
   sectionContainer: {
     marginBottom: 20,
     backgroundColor: "#fff",
-    // borderWidth: 1,
     paddingHorizontal: 16,
     paddingTop: 10,
     paddingBottom: 15,
@@ -236,16 +333,9 @@ const styles = StyleSheet.create({
     rowGap: 10,
     columnGap: "2%",
   },
-
   serviceCard: {
     width: "31%",
     alignItems: "center",
-    marginBottom: 16,
-  },
-
-  serviceRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
     marginBottom: 16,
   },
   serviceCardImg: {
@@ -262,31 +352,43 @@ const styles = StyleSheet.create({
     textAlign: "center",
     color: "#333",
   },
-  emptyCard: {
-    width: "48%",
-  },
-  modalContainer: {
-    flex: 1,
-    justifyContent: "flex-end",
-  },
   backdrop: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: "rgba(0,0,0,0.5)",
+    // ...StyleSheet.absoluteFillObject,
+    flex: 1,
+    backgroundColor: "rgba(0, 0, 0, 0.5)", // Static dark background
+    justifyContent: "flex-end",
+    // backgroundColor: "rgba(0,0,0,0.5)",
   },
   modalContent: {
     backgroundColor: "#fff",
     padding: 16,
     borderTopLeftRadius: 16,
     borderTopRightRadius: 16,
-    // position at bottom
     position: "absolute",
     left: 0,
     right: 0,
     bottom: 0,
+    paddingBottom:50
   },
   sheetTitle: {
     fontSize: 20,
     fontWeight: "bold",
     marginBottom: 12,
   },
+  closeModel: {
+    alignSelf: "flex-end",
+    position: "absolute",
+    top: -45,
+    right: 15,
+    borderRadius: 50,
+    width: 40,
+    height: 40,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#fff",
+  },
+  stickyHeader:{
+    padding:16
+  }
+  
 });

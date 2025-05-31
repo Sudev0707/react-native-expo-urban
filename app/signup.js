@@ -4,15 +4,15 @@ import { useRouter } from "expo-router";
 import LottieView from "lottie-react-native";
 import { useState } from "react";
 import {
-    Dimensions,
-    KeyboardAvoidingView,
-    Platform,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  Dimensions,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
 
 export default function WelcomeScreen() {
@@ -32,12 +32,11 @@ export default function WelcomeScreen() {
 
   return (
     <LinearGradient
-    //   colors={["#93C5FD", "#DBEAFE"]} 
-    // colors={['#D1FAE5', '#F0FDF4']}
-    // colors={['#BBF7D0', '#DCFCE7']}
-    colors={['#BFDBFE', '#DBEAFE']}
-    // colors={['#A7F3D0', '#D1FAE5']} 
-
+      //   colors={["#93C5FD", "#DBEAFE"]}
+      // colors={['#D1FAE5', '#F0FDF4']}
+      // colors={['#BBF7D0', '#DCFCE7']}
+      colors={["#BFDBFE", "#DBEAFE"]}
+      // colors={['#A7F3D0', '#D1FAE5']}
 
       style={styles.container}
     >
